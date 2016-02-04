@@ -1,0 +1,34 @@
+﻿namespace SomeSharp.Nmdc
+{
+    public enum NmdcSupportsOptionType
+    {
+        BotList,
+        ClientID,
+        Feed,
+        HubTopic,
+        IN,
+        MCTo,
+        NoGetINFO,
+        NoHello,
+        OpPlus,
+        QuickList,
+        TTHSearch,
+        UserCommand,
+        UserIP2,
+        ZLine,
+        ZPipe0,
+        ADCGet,
+        BZList,
+        CHUNK,
+        GetCID,
+        GetTestZBlock,
+        GetZBlock,
+        MiniSlots,
+        TTHL,
+        TTHF,
+        XmlBZList,
+        ZLIG,
+        HubINFO,
+        ZPipe
+    }
+}
