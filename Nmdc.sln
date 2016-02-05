@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nmdc", "Nmdc\Nmdc.csproj", "{66466DAA-42E0-4BE9-9C46-0F0C39A7113B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SomeSharp.Nmdc", "Nmdc\SomeSharp.Nmdc.csproj", "{66466DAA-42E0-4BE9-9C46-0F0C39A7113B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
