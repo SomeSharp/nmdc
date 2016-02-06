@@ -12,20 +12,40 @@ namespace SomeSharp.Nmdc
 {
     public class NmdcConnection : IDisposable
     {
-        private const byte CommandStopByte = NmdcUtilities.VerticalBarByte;
+        #region Events
 
+        /// <summary>
+        /// Occurs when the command is received via an instance of the <see cref="NmdcConnection"/> class.
+        /// </summary>
         public event EventHandler<NmdcCommandTransferredArgs> CommandReceived;
+
+        /// <summary>
+        /// Occurs when the command is sent via an instance of the <see cref="NmdcConnection"/> class.
+        /// </summary>
         public event EventHandler<NmdcCommandTransferredArgs> CommandSent;
+
+        #endregion
+
+        #region Fields
         
-        private TcpClient _tcpClient = new TcpClient();
+        private TcpClient _tcpClient;
         private NetworkStream _networkStream;
         private bool _disposed;
+        private bool _connected;
 
         private byte[] _receivedBytesRemainder;
         private byte[] _receiveBuffer;
 
-        #region Constructors
+        #endregion
 
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NmdcConnection"/> class to the specified host and port.
+        /// </summary>
+        /// <param name="host">The DNS name of the remote host to connect to.</param>
+        /// <param name="port">The port number of the remote host to connect to.</param>
+        /// <remarks>The real connection is not established until the <see cref="ConnectAsync"/> method is executed.</remarks>
         public NmdcConnection(string host, int port)
         {
             if (string.IsNullOrEmpty(host))
@@ -33,21 +53,25 @@ namespace SomeSharp.Nmdc
 
             if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
                 throw new ArgumentOutOfRangeException("Port is out of range.", nameof(port));
-        }
 
-        public NmdcConnection(IPAddress address, int port)
-        {
-            if (address == null)
-                throw new ArgumentException("Address is null.", nameof(address));
-
-            if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
-                throw new ArgumentOutOfRangeException("Port is out of range.", nameof(port));
+            Host = host;
+            Port = port;
         }
 
         #endregion
 
         #region Properties
 
+        /// <summary>
+        /// Gets the port number of the remote host to connect to.
+        /// </summary>
+        public int Port { get; private set; }
+
+        /// <summary>
+        /// Gets the DNS name of the remote host to connect to.
+        /// </summary>
+        public string Host { get; private set; }
+        
         /// <summary>
         /// Gets or sets the size of the receive buffer.
         /// </summary>
@@ -71,13 +95,11 @@ namespace SomeSharp.Nmdc
         }
 
         /// <summary>
-        /// Gets a value that indicates whether a <see cref="NmdcConnection"/> is connected to a remote
-        /// host as of the last <see cref="SendAsync(Encoding, IEnumerable{NmdcCommand}, CancellationToken)"/>
-        /// or <see cref="ReceiveAsync(Encoding, CancellationToken)"/> operation.
+        /// Gets a value that indicates whether a <see cref="NmdcConnection"/> is connected to a remote computer.
         /// </summary>
         public bool IsConnected
         {
-            get { return _tcpClient?.Client?.Connected == true; }
+            get { return _connected && _tcpClient?.Client?.Connected == true; }
         }
 
         /// <summary>
@@ -98,16 +120,35 @@ namespace SomeSharp.Nmdc
 
         #endregion
 
-        public async Task ConnectAsync(string host, int port)
+        /// <summary>
+        /// Performs connection to the <see cref="Port"/> on the <see cref="Host"/> as an asynchronous operation.
+        /// </summary>
+        /// <returns>Returns the <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task ConnectAsync()
         {
-            await _tcpClient.ConnectAsync(host, port);
+            Close();
+
+            _tcpClient = new TcpClient();
+            await _tcpClient.ConnectAsync(Host, Port);
+
             _networkStream = _tcpClient.GetStream();
             _receiveBuffer = new byte[ReceiveBufferSize];
+
+            _connected = true;
         }
 
-        public void Disconnect()
+        /// <summary>
+        /// Closes the connection.
+        /// </summary>
+        /// <remarks>Connection can be reopened again with the <see cref="ConnectAsync"/> method.</remarks>
+        public void Close()
         {
-            _tcpClient.Close();
+            _tcpClient?.Close();
+
+            _networkStream = null;
+            _tcpClient = null;
+
+            _connected = false;
         }
 
         public async Task<IEnumerable<NmdcCommand>> ReceiveAsync(Encoding encoding, CancellationToken cancellationToken)
@@ -146,7 +187,7 @@ namespace SomeSharp.Nmdc
 
                     await memoryStream.WriteAsync(_receiveBuffer, 0, receivedBytesCount, cancellationToken);
 
-                    if (Array.IndexOf(_receiveBuffer, CommandStopByte, 0, receivedBytesCount) >= 0)
+                    if (Array.IndexOf(_receiveBuffer, NmdcCommand.StopByte, 0, receivedBytesCount) >= 0)
                         break;
                 }
 
@@ -166,7 +207,7 @@ namespace SomeSharp.Nmdc
                 if (cancellationToken.IsCancellationRequested)
                     return Enumerable.Empty<NmdcCommand>();
 
-                var commandStopBytePosition = Array.IndexOf(commandsBytes, CommandStopByte, offset);
+                var commandStopBytePosition = Array.IndexOf(commandsBytes, NmdcCommand.StopByte, offset);
                 if (commandStopBytePosition < 0)
                     break;
 
@@ -213,7 +254,7 @@ namespace SomeSharp.Nmdc
             if (!CanSend)
                 throw new InvalidOperationException("Data cannot be sent via this connection.");
 
-            //
+            // [1] Iterate through passed commands in order to send them.
 
             foreach (var command in commands)
             {
@@ -225,7 +266,7 @@ namespace SomeSharp.Nmdc
 
                 var bytesToSend = new byte[commandBytes.Length + 1];
                 Buffer.BlockCopy(commandBytes, 0, bytesToSend, 0, commandBytes.Length);
-                Buffer.SetByte(bytesToSend, commandBytes.Length, CommandStopByte);
+                Buffer.SetByte(bytesToSend, commandBytes.Length, NmdcCommand.StopByte);
 
                 await _networkStream.WriteAsync(bytesToSend, 0, bytesToSend.Length, cancellationToken);
 
@@ -251,16 +292,7 @@ namespace SomeSharp.Nmdc
                 return;
 
             if (disposing)
-            {
-                if (_tcpClient != null)
-                    _tcpClient.Dispose();
-
-                if (_networkStream != null)
-                    _networkStream.Dispose();
-            }
-            
-            _networkStream = null;
-            _tcpClient = null;
+                Close();
 
             _disposed = true;
         }

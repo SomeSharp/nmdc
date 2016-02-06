@@ -6,6 +6,8 @@ namespace SomeSharp.Nmdc
 {
     public abstract class NmdcCommand
     {
+        public const byte StopByte = NmdcUtilities.VerticalBarByte;
+
         private static readonly Dictionary<string, string> EscapeCharacters = new Dictionary<string, string>()
         {
             { "|", "&#124;" },
