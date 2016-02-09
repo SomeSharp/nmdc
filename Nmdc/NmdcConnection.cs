@@ -30,7 +30,7 @@ namespace SomeSharp.Nmdc
 
         private const int DefaultPort = 411;
 
-        #region
+        #endregion
 
         #region Fields
 
