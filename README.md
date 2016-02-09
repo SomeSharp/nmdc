@@ -19,7 +19,7 @@ At now library supports not all NMDC commands. List of implemented commands alon
 * $Quit (**NmdcQuitCommand**)
 * $Supports (**NmdcSupportsCommand**)
 * $To (**NmdcToCommand**)
-* $UserCommand (**NmdcUserCommand**)
+* $UserCommand (**NmdcUserCommandCommand**)
 * $ValidateNick (**NmdcValidateNickCommand**)
 * $Version (**NmdcVersionCommand**)
 * $BadPass (**NmdcBadPassCommand**)
