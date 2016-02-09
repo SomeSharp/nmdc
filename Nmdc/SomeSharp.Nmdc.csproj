@@ -44,7 +44,7 @@
     <Compile Include="Commands\NmdcChatCommand.cs" />
     <Compile Include="Commands\NmdcGetPassCommand.cs" />
     <Compile Include="Commands\NmdcMyPassCommand.cs" />
-    <Compile Include="Commands\NmdcUserCommand.cs" />
+    <Compile Include="Commands\NmdcUserCommandCommand.cs" />
     <Compile Include="Commands\NmdcZOnCommand.cs" />
     <Compile Include="NmdcCommandParser.cs" />
     <Compile Include="NmdcConnection.cs" />

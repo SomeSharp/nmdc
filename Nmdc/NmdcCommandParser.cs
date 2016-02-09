@@ -20,7 +20,7 @@ namespace SomeSharp.Nmdc
             NmdcQuitCommand.Parse,
             NmdcSupportsCommand.Parse,
             NmdcToCommand.Parse,
-            NmdcUserCommand.Parse,
+            NmdcUserCommandCommand.Parse,
             NmdcValidateNickCommand.Parse,
             NmdcVersionCommand.Parse,
             NmdcBadPassCommand.Parse,

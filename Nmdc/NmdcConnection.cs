@@ -15,19 +15,25 @@ namespace SomeSharp.Nmdc
         #region Events
 
         /// <summary>
-        /// Occurs when the command is received via an instance of the <see cref="NmdcConnection"/> class.
+        /// Occurs when an instance of the <see cref="NmdcConnection"/> class receives a command.
         /// </summary>
         public event EventHandler<NmdcCommandTransferredArgs> CommandReceived;
 
         /// <summary>
-        /// Occurs when the command is sent via an instance of the <see cref="NmdcConnection"/> class.
+        /// Occurs when an instance of the <see cref="NmdcConnection"/> class sends a command.
         /// </summary>
         public event EventHandler<NmdcCommandTransferredArgs> CommandSent;
 
         #endregion
 
+        #region Constants
+
+        private const int DefaultPort = 411;
+
+        #region
+
         #region Fields
-        
+
         private TcpClient _tcpClient;
         private NetworkStream _networkStream;
         private bool _disposed;
@@ -41,15 +47,20 @@ namespace SomeSharp.Nmdc
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NmdcConnection"/> class to the specified host and port.
+        /// Initializes a new instance of the <see cref="NmdcConnection"/> class to the specified host
+        /// and port (default port number is 411).
         /// </summary>
         /// <param name="host">The DNS name of the remote host to connect to.</param>
         /// <param name="port">The port number of the remote host to connect to.</param>
-        /// <remarks>The real connection is not established until the <see cref="ConnectAsync"/> method is executed.</remarks>
-        public NmdcConnection(string host, int port)
+        /// <remarks>The real connection is not established until the <see cref="ConnectAsync"/> method
+        /// is executed.</remarks>
+        /// <exception cref="ArgumentException"><paramref name="host"/> is null or empty.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">The port parameter is not between
+        /// <see cref="IPEndPoint.MinPort"/> and <see cref="IPEndPoint.MaxPort"/>.</exception>
+        public NmdcConnection(string host, int port = DefaultPort)
         {
             if (string.IsNullOrEmpty(host))
-                throw new ArgumentException("Host is null.", nameof(host));
+                throw new ArgumentException("Host is null or empty.", nameof(host));
 
             if (port < IPEndPoint.MinPort || port > IPEndPoint.MaxPort)
                 throw new ArgumentOutOfRangeException("Port is out of range.", nameof(port));
@@ -151,8 +162,29 @@ namespace SomeSharp.Nmdc
             _connected = false;
         }
 
+        /// <summary>
+        /// Asynchronously receives a sequence of commands using passed encoding to parse each
+        /// command and monitors cancellation requests.
+        /// </summary>
+        /// <param name="encoding">Encoding to parse commands from received bytes.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous receive operation. The value of
+        /// the TResult parameter contains collection of received commands.</returns>
+        /// <exception cref="ArgumentNullException">The <paramref name="encoding"/> parameter is null.</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     <para>Attempt to receive data via dead connection.</para>
+        ///     <para>-or-</para>
+        ///     <para>Data cannot be received via this connection.</para>
+        ///     <para>-or-</para>
+        ///     <para>Underlying network stream is currently in use by a previous receive operation.</para>
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">The connection has been disposed.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public async Task<IEnumerable<NmdcCommand>> ReceiveAsync(Encoding encoding, CancellationToken cancellationToken)
         {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(NmdcConnection), "The connection has been disposed.");
+
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding), "Encoding of data to receive is null.");
 
@@ -166,8 +198,7 @@ namespace SomeSharp.Nmdc
 
             // [1] Receive bytes via connection until the command stop byte (|) is encountered.
 
-            if (cancellationToken.IsCancellationRequested)
-                return Enumerable.Empty<NmdcCommand>();
+            cancellationToken.ThrowIfCancellationRequested();
 
             byte[] commandsBytes = null;
 
@@ -178,8 +209,7 @@ namespace SomeSharp.Nmdc
 
                 while (true)
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                        return Enumerable.Empty<NmdcCommand>();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var receivedBytesCount = await _networkStream.ReadAsync(_receiveBuffer, 0, _receiveBuffer.Length, cancellationToken);
                     if (receivedBytesCount <= 0)
@@ -196,16 +226,14 @@ namespace SomeSharp.Nmdc
 
             // [2] Parse commands presented in the received bytes.
 
-            if (cancellationToken.IsCancellationRequested)
-                return Enumerable.Empty<NmdcCommand>();
-            
+            cancellationToken.ThrowIfCancellationRequested();
+
             var result = new List<NmdcCommand>();
             var offset = 0;
             
             while (offset < commandsBytes.Length)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return Enumerable.Empty<NmdcCommand>();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var commandStopBytePosition = Array.IndexOf(commandsBytes, NmdcCommand.StopByte, offset);
                 if (commandStopBytePosition < 0)
@@ -222,8 +250,7 @@ namespace SomeSharp.Nmdc
 
             // [3] Save the bytes remained after parsing since they must be used as start of a command on next receive operation.
 
-            if (cancellationToken.IsCancellationRequested)
-                return Enumerable.Empty<NmdcCommand>();
+            cancellationToken.ThrowIfCancellationRequested();
 
             _receivedBytesRemainder = null;
             var receivedDataTailLength = commandsBytes.Length - offset;
@@ -238,13 +265,34 @@ namespace SomeSharp.Nmdc
             return result;
         }
 
+        /// <summary>
+        /// Asynchronously sends a sequence of commands using passed encoding to get each
+        /// command's bytes and monitors cancellation requests.
+        /// </summary>
+        /// <param name="encoding">Encoding to get each command's bytes.</param>
+        /// <param name="commands">Commands to send.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A task that represents the asynchronous send operation.</returns>
+        /// <exception cref="ArgumentNullException">The <paramref name="encoding"/> parameter is null.</exception>
+        /// <exception cref="InvalidOperationException">
+        ///     <para>Attempt to send data via dead connection.</para>
+        ///     <para>-or-</para>
+        ///     <para>Data cannot be sent via this connection.</para>
+        ///     <para>-or-</para>
+        ///     <para>Underlying network stream is currently in use by a previous send operation.</para>
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">The connection has been disposed.</exception>
+        /// <exception cref="OperationCanceledException">The token has had cancellation requested.</exception>
         public async Task SendAsync(Encoding encoding, IEnumerable<NmdcCommand> commands, CancellationToken cancellationToken)
         {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(NmdcConnection), "The connection has been disposed.");
+
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding), "Encoding of data to send is null.");
 
-            if (commands == null)
-                throw new ArgumentNullException(nameof(commands), "Commands to send are not specified.");
+            if (commands == null || !commands.Any())
+                return;
 
             // [0] Check the connection state.
 
@@ -258,8 +306,7 @@ namespace SomeSharp.Nmdc
 
             foreach (var command in commands)
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return;
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var message = command.ToString();
                 var commandBytes = encoding.GetBytes(message);
@@ -274,11 +321,21 @@ namespace SomeSharp.Nmdc
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="CommandReceived"/> event with passed data.
+        /// </summary>
+        /// <param name="message">Original message the <paramref name="command"/> was constructed from.</param>
+        /// <param name="command">Received command.</param>
         private void OnCommandReceived(string message, NmdcCommand command)
         {
             CommandReceived?.Invoke(this, new NmdcCommandTransferredArgs(DateTime.Now, message, command));
         }
 
+        /// <summary>
+        /// Raises the <see cref="CommandSent"/> event with passed data.
+        /// </summary>
+        /// <param name="message">NMDC-message that represents the <paramref name="command"/>.</param>
+        /// <param name="command">Sent command.</param>
         private void OnCommandSent(string message, NmdcCommand command)
         {
             CommandSent?.Invoke(this, new NmdcCommandTransferredArgs(DateTime.Now, message, command));
