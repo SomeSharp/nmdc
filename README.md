@@ -9,7 +9,7 @@ The library written in C# 6 (yes, it uses new features such as [interpolated str
 
 # Supported commands
 
-At now the library supports not all NMDC commands. Since no client-to-client connections support some commands will never be implemented in the library. List of implemented commands along with corresponding classes (in parentheses) is placed below:
+At now the library supports not all NMDC commands. Since client-to-client connections are not supported, some commands will never be implemented in the library. List of implemented commands along with corresponding classes (in parentheses) is placed below:
 
 * Chat command (**NmdcChatCommand**)
 * $GetNickList (**GetNickListCommand**)
