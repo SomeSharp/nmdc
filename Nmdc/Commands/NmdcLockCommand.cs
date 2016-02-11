@@ -4,11 +4,11 @@ namespace SomeSharp.Nmdc
 {
     public sealed class NmdcLockCommand : NmdcCommand
     {
+        #region Constants
+
         private const string CommandStart = "$Lock";
         private const string PkMarker = "Pk=";
         private const string ExtendedProtocolMarker = "EXTENDEDPROTOCOL";
-
-        #region Parse Support
 
         private const string CodeGroupName = "code";
         private const string PkGroupName = "pk";

@@ -4,9 +4,9 @@ namespace SomeSharp.Nmdc
 {
     public sealed class NmdcToCommand : NmdcCommand
     {
-        private const string CommandStart = "$To";
+        #region Constants
 
-        #region Parse Support
+        private const string CommandStart = "$To";
 
         private const string ReceiverNickGroupName = "rn";
         private const string SenderNickGroupName = "sn";

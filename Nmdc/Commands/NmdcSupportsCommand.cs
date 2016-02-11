@@ -5,11 +5,43 @@ using System.Text.RegularExpressions;
 
 namespace SomeSharp.Nmdc
 {
+    public enum NmdcSupportsOptionType
+    {
+        BotList,
+        ClientID,
+        Feed,
+        HubTopic,
+        IN,
+        MCTo,
+        NoGetINFO,
+        NoHello,
+        OpPlus,
+        QuickList,
+        TTHSearch,
+        UserCommand,
+        UserIP2,
+        ZLine,
+        ZPipe0,
+        ADCGet,
+        BZList,
+        CHUNK,
+        GetCID,
+        GetTestZBlock,
+        GetZBlock,
+        MiniSlots,
+        TTHL,
+        TTHF,
+        XmlBZList,
+        ZLIG,
+        HubINFO,
+        ZPipe
+    }
+
     public sealed class NmdcSupportsCommand : NmdcCommand
     {
-        private const string CommandStart = "$Supports";
+        #region Constants
 
-        #region Parse Support
+        private const string CommandStart = "$Supports";
 
         private const string OptionGroupName = "opt";
         private static readonly Regex ParseRegex = new Regex(

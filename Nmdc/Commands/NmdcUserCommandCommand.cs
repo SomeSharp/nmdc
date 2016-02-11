@@ -25,14 +25,18 @@ namespace SomeSharp.Nmdc
 
     public sealed class NmdcUserCommandCommand : NmdcCommand
     {
+        #region Typedefs
+
         public delegate IEnumerable<NmdcCommand> UserCommandsGenerator(string nickReplacement, string myNickReplacement, IDictionary<string, string> lineReplacements);
+
+        #endregion
+
+        #region Constants
 
         private const string CommandStart = "$UserCommand";
 
         public const string MyNickVariable = "%[mynick]";
         public const string NickVariable = "%[nick]";
-
-        #region Parse Support
 
         private const string TypeGroupName = "type";
         private const string ContextGroupName = "context";
@@ -94,7 +98,7 @@ namespace SomeSharp.Nmdc
                     NickVariable,
                     MyNickVariable,
                     (Lines ?? Enumerable.Empty<string>()).ToDictionary(l => l, l => l));
-                var commandsGluedMessage = string.Join(string.Empty, commands.Select(c => $"{c}{NmdcUtilities.VerticalBarChar}"));
+                var commandsGluedMessage = string.Join(string.Empty, commands.Select(c => $"{c}{StopChar}"));
                 rawPart = EscapeArgument(commandsGluedMessage);
             }
 
@@ -144,7 +148,7 @@ namespace SomeSharp.Nmdc
                 if (lineMatch.Success)
                     lines = lineMatch.Captures.Cast<Capture>().Select(capture => capture.Value);
 
-                var commandsMessages = UnescapeArgument(gluedMessages).Split(new[] { NmdcUtilities.VerticalBarChar }, StringSplitOptions.RemoveEmptyEntries);
+                var commandsMessages = UnescapeArgument(gluedMessages).Split(new[] { StopChar }, StringSplitOptions.RemoveEmptyEntries);
                 commandsGenerator = (nickReplacement, myNickReplacement, lineReplacements) =>
                 {
                     var replacements = (lineReplacements ?? new Dictionary<string, string>())

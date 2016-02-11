@@ -4,9 +4,9 @@ namespace SomeSharp.Nmdc
 {
     public sealed class NmdcHubNameCommand : NmdcCommand
     {
-        private const string CommandStart = "$HubName";
+        #region Constants
 
-        #region Parse Support
+        private const string CommandStart = "$HubName";
 
         private const string NameGroupName = "name";
         private static readonly Regex ParseRegex = new Regex(

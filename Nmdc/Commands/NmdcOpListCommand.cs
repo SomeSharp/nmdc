@@ -6,9 +6,9 @@ namespace SomeSharp.Nmdc
 {
     public sealed class NmdcOpListCommand : NmdcCommand
     {
-        private const string CommandStart = "$OpList";
+        #region Constants
 
-        #region Parse Support
+        private const string CommandStart = "$OpList";
 
         private static readonly Regex ParseRegex = new Regex(
             $@"^{Regex.Escape(CommandStart)} ({NmdcCommandParser.NickGroup}\$\$)+$",

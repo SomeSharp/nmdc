@@ -6,7 +6,10 @@ namespace SomeSharp.Nmdc
 {
     public abstract class NmdcCommand
     {
-        public const byte StopByte = NmdcUtilities.VerticalBarByte;
+        #region Constants
+
+        public const char StopChar = '|';
+        public const byte StopByte = 124; // |
 
         private static readonly Dictionary<string, string> EscapeCharacters = new Dictionary<string, string>()
         {
@@ -19,6 +22,10 @@ namespace SomeSharp.Nmdc
 
         private static readonly Regex EscapeRegex = new Regex($"({string.Join("|", EscapeCharacters.Keys.Select(Regex.Escape))})");
         private static readonly Regex UnescapeRegex = new Regex($"({string.Join("|", UnescapeCharacters.Keys.Select(Regex.Escape))})");
+
+        #endregion
+
+        #region Methods
 
         protected static string EscapeArgument(string argument)
         {
@@ -35,5 +42,7 @@ namespace SomeSharp.Nmdc
 
             return UnescapeRegex.Replace(argument, m => UnescapeCharacters[m.Value]);
         }
+
+        #endregion
     }
 }

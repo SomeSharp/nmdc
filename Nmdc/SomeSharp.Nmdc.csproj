@@ -47,12 +47,9 @@
     <Compile Include="Commands\NmdcUserCommandCommand.cs" />
     <Compile Include="Commands\NmdcZOnCommand.cs" />
     <Compile Include="NmdcCommandParser.cs" />
-    <Compile Include="NmdcConnection.cs" />
-    <Compile Include="Enums\NmdcClientModeType.cs" />
-    <Compile Include="Enums\NmdcClientStatusType.cs" />
+    <Compile Include="NmdcHubConnection.cs" />
     <Compile Include="Commands\Base\NmdcCommand.cs" />
     <Compile Include="NmdcCommandTransferredArgs.cs" />
-    <Compile Include="Enums\NmdcSupportsOptionType.cs" />
     <Compile Include="Commands\NmdcGetNickListCommand.cs" />
     <Compile Include="Commands\NmdcHelloCommand.cs" />
     <Compile Include="Commands\NmdcHubNameCommand.cs" />
@@ -65,7 +62,6 @@
     <Compile Include="Commands\NmdcSupportsCommand.cs" />
     <Compile Include="Commands\NmdcToCommand.cs" />
     <Compile Include="Commands\NmdcUnknownCommand.cs" />
-    <Compile Include="NmdcUtilities.cs" />
     <Compile Include="Commands\NmdcValidateNickCommand.cs" />
     <Compile Include="Commands\NmdcVersionCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

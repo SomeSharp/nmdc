@@ -4,7 +4,7 @@ namespace SomeSharp.Nmdc
 {
     public sealed class NmdcChatCommand : NmdcCommand
     {
-        #region Parse Support
+        #region Constants
 
         private const string MessageGroupName = "message";
         private static readonly Regex ParseRegex = new Regex(

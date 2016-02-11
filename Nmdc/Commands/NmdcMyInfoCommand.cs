@@ -4,9 +4,9 @@ namespace SomeSharp.Nmdc
 {
     public sealed class NmdcMyInfoCommand : NmdcCommand
     {
-        private const string CommandStart = "$MyINFO";
+        #region Constants
 
-        #region Parse Support
+        private const string CommandStart = "$MyINFO";
 
         private const string TagGroupName = "tag";
         private const string DescriptionGroupName = "desc";

@@ -8,11 +8,9 @@ namespace SomeSharp.Nmdc
         private static readonly Func<string, NmdcCommand>[] Parsers = new Func<string, NmdcCommand>[]
         {
             NmdcChatCommand.Parse,
-
-            NmdcGetNickListCommand.Parse,
+            
             NmdcHelloCommand.Parse,
             NmdcHubNameCommand.Parse,
-            NmdcKeyCommand.Parse,
             NmdcLockCommand.Parse,
             NmdcMyInfoCommand.Parse,
             NmdcNickListCommand.Parse,
@@ -21,11 +19,8 @@ namespace SomeSharp.Nmdc
             NmdcSupportsCommand.Parse,
             NmdcToCommand.Parse,
             NmdcUserCommandCommand.Parse,
-            NmdcValidateNickCommand.Parse,
-            NmdcVersionCommand.Parse,
             NmdcBadPassCommand.Parse,
             NmdcGetPassCommand.Parse,
-            NmdcMyPassCommand.Parse,
             NmdcZOnCommand.Parse
         };
 

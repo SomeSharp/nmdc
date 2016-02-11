@@ -4,9 +4,9 @@ namespace SomeSharp.Nmdc
 {
     public sealed class NmdcGetPassCommand : NmdcCommand
     {
-        private const string CommandStart = "$GetPass";
+        #region Constants
 
-        #region Parse Support
+        private const string CommandStart = "$GetPass";
 
         private static readonly Regex ParseRegex = new Regex(
             $@"^{Regex.Escape(CommandStart)}$",
